@@ -70,10 +70,11 @@ func (p *PerlFunction[Result]) Exec(command string) (result Result, err error) {
 		return
 	}
 
-	// Créez un scanner pour lire la sortie de la commande ligne par ligne
 	scanner := bufio.NewScanner(stdout)
 
-	// Lancez une goroutine pour lire la sortie de la commande et envoyer chaque ligne dans le canal
+	// locker is here to prevent function to return before all lines are processed
+	locker := make(chan bool, 1)
+
 	go func() {
 		for scanner.Scan() {
 			line := scanner.Text()
@@ -81,15 +82,18 @@ func (p *PerlFunction[Result]) Exec(command string) (result Result, err error) {
 			if parts[0] == "["+p.uuid+" - PRINT" {
 				fmt.Println(parts[1])
 			} else {
+				if Debug {
+					fmt.Println("returned value : " + line)
+				}
 				json.Unmarshal([]byte(line), &result)
 			}
-
 		}
+		locker <- true
 	}()
 
-	// Attendez que la commande se termine
 	if err := cmd.Wait(); err != nil {
 		fmt.Println("La commande a échoué:", err)
 	}
+	<-locker
 	return result, nil
 }
