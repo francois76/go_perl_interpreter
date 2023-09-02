@@ -1,4 +1,4 @@
-package perl
+package lib
 
 import (
 	"encoding/json"
@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-func buildPerlparams(params P) string {
+func BuildPerlparams(params map[string]interface{}) string {
 	perlParams := ""
 	for paramName, paramValue := range params {
 		jsonValue, err := json.Marshal(paramValue)

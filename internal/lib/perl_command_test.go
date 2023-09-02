@@ -1,8 +1,9 @@
-package perl
+package lib_test
 
 import (
 	"testing"
 
+	"github.com/francois76/go-perl-interpreter/internal/lib"
 	"github.com/maxatome/go-testdeep/td"
 )
 
@@ -15,7 +16,7 @@ func TestCommand(t *testing.T) {
 		 print "$firstKey->{AInt} \n";print "$firstKey->{ABool} \n";
 	print "$secondKey\n";
 		`
-		result := sanitizeCommand("09a991ab-244c-43c0-9f1a-1895ee8f6934", data)
+		result := lib.SanitizeCommand("09a991ab-244c-43c0-9f1a-1895ee8f6934", data)
 		td.CmpString(t, result, `
 		print_09a991ab-244c-43c0-9f1a-1895ee8f6934 "$firstKey->{AString} \n";
 		print_09a991ab-244c-43c0-9f1a-1895ee8f6934($firstKey->{AInt});

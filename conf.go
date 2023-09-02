@@ -2,8 +2,6 @@ package perl
 
 import "fmt"
 
-var Debug = false
-
 var PerlInc = []string{}
 
 func buildPerlInc() (result string) {

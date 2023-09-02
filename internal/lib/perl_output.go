@@ -1,14 +1,14 @@
-package perl
+package lib
 
 import (
 	"fmt"
 )
 
-func (p *PerlFunction[Result]) handleOutput() {
+func handleOutput() {
 
 }
 
-func buildCustomPrinter(u string) string {
+func BuildCustomPrinter(u string) string {
 	return fmt.Sprintf(`
 	sub print_%[1]s
 	{

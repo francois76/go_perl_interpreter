@@ -1,11 +1,11 @@
-package perl
+package lib
 
 import (
 	"fmt"
 	"strings"
 )
 
-func sanitizeCommand(u string, command string) string {
+func SanitizeCommand(u string, command string) string {
 	printer := fmt.Sprintf("print_%s", u)
 	startMatcher := []string{" ", "	", "\t", "\n", ";"}
 	endMatcher := []string{" ", "	", "\t", "("}

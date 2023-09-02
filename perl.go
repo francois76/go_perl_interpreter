@@ -9,7 +9,9 @@ import (
 	"os/exec"
 	"strings"
 
+	"github.com/francois76/go-perl-interpreter/internal/lib"
 	"github.com/google/uuid"
+	log "github.com/sirupsen/logrus"
 )
 
 func New[Result any]() *PerlFunction[Result] {
@@ -34,23 +36,22 @@ func (p *PerlFunction[Result]) Exec(command string) (result Result, err error) {
 	use JSON qw(from_json to_json);
 
 	`,
-		buildCustomPrinter(p.uuid),
+		lib.BuildCustomPrinter(p.uuid),
 		`
 
 	sub main
 	{
 		`,
-		buildPerlparams(p.params),
-		sanitizeCommand(p.uuid, command),
+		lib.BuildPerlparams(p.params),
+		lib.SanitizeCommand(p.uuid, command),
 		`
 	}
 	my $result = main();
 	print to_json($result);
 	1;
 	`)
-	if Debug {
-		fmt.Println(allPerlCommand)
-	}
+
+	log.Debug(allPerlCommand)
 	cmd.Stdin = bytes.NewBufferString(allPerlCommand)
 
 	var stderr bytes.Buffer
@@ -61,12 +62,10 @@ func (p *PerlFunction[Result]) Exec(command string) (result Result, err error) {
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		fmt.Println("Erreur lors de la création du pipe pour stdout:", err)
 		return
 	}
 
 	if err = cmd.Start(); err != nil {
-		fmt.Println("Erreur lors du démarrage de la commande:", err)
 		return
 	}
 
@@ -82,17 +81,15 @@ func (p *PerlFunction[Result]) Exec(command string) (result Result, err error) {
 			if parts[0] == "["+p.uuid+" - PRINT" {
 				fmt.Println(parts[1])
 			} else {
-				if Debug {
-					fmt.Println("returned value : " + line)
-				}
+				log.Debug("returned value : " + line)
 				json.Unmarshal([]byte(line), &result)
 			}
 		}
 		locker <- true
 	}()
 
-	if err := cmd.Wait(); err != nil {
-		fmt.Println("La commande a échoué:", err)
+	if err = cmd.Wait(); err != nil {
+		return
 	}
 	<-locker
 	return result, nil
