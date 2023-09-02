@@ -39,14 +39,14 @@ func (p *PerlFunction[Result]) Exec(command string) (result Result, err error) {
 		lib.BuildCustomPrinter(p.uuid),
 		`
 
-	sub main
+	sub main_`, p.uuid, `
 	{
 		`,
 		lib.BuildPerlparams(p.params),
 		lib.SanitizeCommand(p.uuid, command),
 		`
 	}
-	my $result = main();
+	my $result = main_`, p.uuid, `();
 	print to_json($result);
 	1;
 	`)
