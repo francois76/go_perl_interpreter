@@ -7,17 +7,18 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+
+	"github.com/google/uuid"
 )
+
+func New[Result any]() *PerlFunction[Result] {
+	return Params[Result](P{})
+}
 
 func Params[Result any](params P) *PerlFunction[Result] {
 	return &PerlFunction[Result]{
 		params: params,
-	}
-}
-
-func New[Result any]() *PerlFunction[Result] {
-	return &PerlFunction[Result]{
-		params: map[string]interface{}{},
+		uuid:   uuid.New(),
 	}
 }
 
@@ -34,7 +35,7 @@ func (p *PerlFunction[Result]) Exec(command string) (result Result, err error) {
 	sub main
 	{
 		`,
-		BuildPerlparams(p),
+		buildPerlparams(p),
 		command,
 		`
 	}

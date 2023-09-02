@@ -1,8 +1,13 @@
 package perl
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/google/uuid"
+)
 
 type PerlFunction[Result any] struct {
+	uuid        uuid.UUID
 	params      P
 	returnValue Result
 }
