@@ -15,7 +15,7 @@ type sample struct {
 	ABool   perl.Bool
 }
 
-func TestMyFunc(t *testing.T) {
+func TestPackage(t *testing.T) {
 
 	t.Run("success_input", func(t *testing.T) {
 		result, err := successInput(sample{

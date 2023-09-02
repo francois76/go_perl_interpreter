@@ -1,6 +1,7 @@
 package perl
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"errors"
@@ -18,7 +19,7 @@ func New[Result any]() *PerlFunction[Result] {
 func Params[Result any](params P) *PerlFunction[Result] {
 	return &PerlFunction[Result]{
 		params: params,
-		uuid:   uuid.New(),
+		uuid:   strings.ReplaceAll(uuid.New().String(), "-", ""),
 	}
 }
 
@@ -32,11 +33,15 @@ func (p *PerlFunction[Result]) Exec(command string) (result Result, err error) {
 		`
 	use JSON qw(from_json to_json);
 
+	`,
+		buildCustomPrinter(p.uuid),
+		`
+
 	sub main
 	{
 		`,
-		buildPerlparams(p),
-		command,
+		buildPerlparams(p.params),
+		sanitizeCommand(p.uuid, command),
 		`
 	}
 	my $result = main();
@@ -50,14 +55,41 @@ func (p *PerlFunction[Result]) Exec(command string) (result Result, err error) {
 
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
-	out, _ := cmd.Output()
 	if stderr.Len() > 0 {
 		return result, errors.New(stderr.String())
 	}
-	outString := string(out)
-	lines := strings.Split(outString, "\n")
 
-	fmt.Println(strings.Join(lines[:len(lines)-1], "\n"))
-	json.Unmarshal([]byte(lines[len(lines)-1]), &result)
+	stdout, err := cmd.StdoutPipe()
+	if err != nil {
+		fmt.Println("Erreur lors de la création du pipe pour stdout:", err)
+		return
+	}
+
+	if err = cmd.Start(); err != nil {
+		fmt.Println("Erreur lors du démarrage de la commande:", err)
+		return
+	}
+
+	// Créez un scanner pour lire la sortie de la commande ligne par ligne
+	scanner := bufio.NewScanner(stdout)
+
+	// Lancez une goroutine pour lire la sortie de la commande et envoyer chaque ligne dans le canal
+	go func() {
+		for scanner.Scan() {
+			line := scanner.Text()
+			parts := strings.Split(line, "]")
+			if parts[0] == "["+p.uuid+" - PRINT" {
+				fmt.Println(parts[1])
+			} else {
+				json.Unmarshal([]byte(line), &result)
+			}
+
+		}
+	}()
+
+	// Attendez que la commande se termine
+	if err := cmd.Wait(); err != nil {
+		fmt.Println("La commande a échoué:", err)
+	}
 	return result, nil
 }

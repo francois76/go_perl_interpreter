@@ -2,12 +2,10 @@ package perl
 
 import (
 	"encoding/json"
-
-	"github.com/google/uuid"
 )
 
 type PerlFunction[Result any] struct {
-	uuid        uuid.UUID
+	uuid        string
 	params      P
 	returnValue Result
 }

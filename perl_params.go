@@ -6,9 +6,9 @@ import (
 	"strconv"
 )
 
-func buildPerlparams[Result any](p *PerlFunction[Result]) string {
+func buildPerlparams(params P) string {
 	perlParams := ""
-	for paramName, paramValue := range p.params {
+	for paramName, paramValue := range params {
 		jsonValue, err := json.Marshal(paramValue)
 		if err != nil {
 			panic(err)
