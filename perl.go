@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
-	"strconv"
 	"strings"
 )
 
@@ -24,29 +23,25 @@ func New[Result any]() *PerlFunction[Result] {
 
 func (p *PerlFunction[Result]) Exec(command string) (result Result, err error) {
 	cmd := exec.Command("perl")
-	perlParams := ""
-	for paramName, paramValue := range p.params {
-		jsonValue, err := json.Marshal(paramValue)
-		if err != nil {
-			return result, err
-		}
-		perlParams = fmt.Sprint(perlParams, "my ", "$", paramName, " = from_json(", strconv.Quote(string(jsonValue)), ");\n")
-	}
-	allPerlCommand := fmt.Sprintf(`
+
+	allPerlCommand := fmt.Sprint(`
 	use strict;
-	use warnings;
-	%s
+	use warnings;`,
+		buildPerlInc(),
+		`
 	use JSON qw(from_json to_json);
 
 	sub main
 	{
-	%s
-	%s
+		`,
+		BuildPerlparams(p),
+		command,
+		`
 	}
 	my $result = main();
 	print to_json($result);
 	1;
-	`, buildPerlInc(), perlParams, command)
+	`)
 	if Debug {
 		fmt.Println(allPerlCommand)
 	}
