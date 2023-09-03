@@ -7,6 +7,7 @@ import (
 
 	"github.com/francois76/go-perl-interpreter"
 	"github.com/maxatome/go-testdeep/td"
+	log "github.com/sirupsen/logrus"
 )
 
 type sample struct {
@@ -15,7 +16,8 @@ type sample struct {
 	ABool   perl.Bool
 }
 
-func TestMyFunc(t *testing.T) {
+func TestPackage(t *testing.T) {
+	log.SetLevel(log.DebugLevel)
 
 	t.Run("success_input", func(t *testing.T) {
 		result, err := successInput(sample{

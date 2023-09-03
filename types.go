@@ -1,8 +1,11 @@
 package perl
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
 type PerlFunction[Result any] struct {
+	uuid        string
 	params      P
 	returnValue Result
 }
