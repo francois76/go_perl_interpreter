@@ -3,9 +3,9 @@ use strict;
 use warnings;
 
 my $result = "";
-for my $i (0..999) {
+for my $i (0..99999) {
     $result .= $i;
 }
-print $result . "\n";
+print length($result) . "\n";
 
 1;
